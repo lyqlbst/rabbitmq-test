@@ -13,8 +13,8 @@ import java.util.concurrent.TimeoutException;
 
 /**
  * @author yuqiang lin
- * @description 管理资源
- * @email linyuqiang@guazi.com
+ * @description 管理资源，定义、清空队列
+ * @email 1098387108@qq.com
  * @date 2019/9/19 2:37 PM
  */
 public class PrepareTest {

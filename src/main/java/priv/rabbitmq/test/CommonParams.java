@@ -27,7 +27,7 @@ final class CommonParams {
 
     // ----------------队列----------------
 
-    private static final String DIRECT_QUEUE = "priv.rabbitmq.test.direct.queue";
+    static final String DIRECT_QUEUE = "priv.rabbitmq.test.direct.queue";
 
     private static final String FANOUT_QUEUE = "priv.rabbitmq.test.fanout.queue";
 
