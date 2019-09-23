@@ -1,6 +1,7 @@
 package priv.rabbitmq.test;
 
 import com.google.common.collect.Maps;
+import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.BuiltinExchangeType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -37,6 +38,10 @@ final class CommonParams {
     private static final String HEADERS_ALL_QUEUE = "priv.rabbitmq.test.headers.all.queue";
     private static final String HEADERS_ANY_QUEUE = "priv.rabbitmq.test.headers.any.queue";
 
+    private static final String BAK_QUEUE = "priv.rabbitmq.test.bak.queue";
+
+    private static final String DEAD_QUEUE = "priv.rabbitmq.test.dead.queue";
+
     // ----------------交换器----------------
 
     static final String DIRECT_EXCHANGE = "priv.rabbitmq.test.direct.exchange";
@@ -47,6 +52,10 @@ final class CommonParams {
 
     static final String HEADERS_EXCHANGE = "priv.rabbitmq.test.headers.exchange";
 
+    private static final String BAK_EXCHANGE = "priv.rabbitmq.test.bak.exchange";
+
+    private static final String DEAD_EXCHANGE = "priv.rabbitmq.test.dead.exchange";
+
     // ----------------绑定键----------------
 
     static final String DIRECT_BINDING_KEY = "priv.rabbitmq.test.direct.key";
@@ -56,11 +65,16 @@ final class CommonParams {
     static final String TOPIC_ANY_WORDS_BINDING_KEY = "priv.rabbitmq.test.topic.#.key";
     static final String TOPIC_ONE_WORD_BINDING_KEY = "priv.rabbitmq.test.topic.*.key";
 
+    static final String WRONG_BINDING_KEY = "priv.rabbitmq.test.wrong.key";
+
+    // ----------------其他----------------
+
+    static final AMQP.BasicProperties EMPTY_PROPERTIES = new AMQP.BasicProperties.Builder().build();
+
     /**
-     *
-     * @return  headers模式下的routingKey，无意义
+     * @return 随机一个routingKey，无意义
      */
-    static String getHeadersRoutingKey(){
+    static String getMeaninglessRoutingKey() {
         return UUID.randomUUID().toString();
     }
 
@@ -93,6 +107,32 @@ final class CommonParams {
     }
 
     /**
+     * 构建一个备份队列参数
+     *
+     * @return 备份队列所需参数
+     */
+    private static Map<String, Object> getBakExchangeProperties() {
+        Map<String, Object> properties = Maps.newHashMap();
+        properties.put("alternate-exchange", BAK_EXCHANGE);
+        return properties;
+    }
+
+    /**
+     * 构建一个死信队列参数
+     *
+     * @return 备份队列所需参数
+     */
+    private static Map<String, Object> getDeadLetterExchangeProperties() {
+        Map<String, Object> properties = Maps.newHashMap();
+        properties.put("x-dead-letter-exchange", DEAD_EXCHANGE);
+        // 设置过期时间，方便测试
+        properties.put("x-message-ttl", 5000);
+        // 设置队列最大长度，方便测试
+        properties.put("x-max-length", 3);
+        return properties;
+    }
+
+    /**
      * 维护一个映射关系，四种模式下的队列、交换器、绑定键、匹配模式
      */
     @Getter
@@ -102,37 +142,65 @@ final class CommonParams {
                 , DIRECT_EXCHANGE
                 , DIRECT_BINDING_KEY
                 , BuiltinExchangeType.DIRECT
+                , Collections.emptyMap()
+                , getBakExchangeProperties()
                 , Collections.emptyMap()),
 
         FANOUT(FANOUT_QUEUE
                 , FANOUT_EXCHANGE
                 , FANOUT_BINDING_KEY
                 , BuiltinExchangeType.FANOUT
+                , getDeadLetterExchangeProperties()
+                , Collections.emptyMap()
                 , Collections.emptyMap()),
 
         TOPIC_ONE_WORD(TOPIC_ONE_WORD_QUEUE
                 , TOPIC_EXCHANGE
                 , TOPIC_ONE_WORD_BINDING_KEY
                 , BuiltinExchangeType.TOPIC
+                , Collections.emptyMap()
+                , Collections.emptyMap()
                 , Collections.emptyMap()),
 
         TOPIC_ANY_WORDS(TOPIC_ANY_WORDS_QUEUE
                 , TOPIC_EXCHANGE
                 , TOPIC_ANY_WORDS_BINDING_KEY
                 , BuiltinExchangeType.TOPIC
+                , Collections.emptyMap()
+                , Collections.emptyMap()
                 , Collections.emptyMap()),
 
         ALL_HEADERS(HEADERS_ALL_QUEUE
                 , HEADERS_EXCHANGE
-                , getHeadersRoutingKey()
+                , getMeaninglessRoutingKey()
                 , BuiltinExchangeType.HEADERS
+                , Collections.emptyMap()
+                , Collections.emptyMap()
                 , getAllHeadersProperties()),
 
         ANY_HEADERS(HEADERS_ANY_QUEUE
                 , HEADERS_EXCHANGE
-                , getHeadersRoutingKey()
+                , getMeaninglessRoutingKey()
                 , BuiltinExchangeType.HEADERS
-                , getAnyHeadersProperties());
+                , Collections.emptyMap()
+                , Collections.emptyMap()
+                , getAnyHeadersProperties()),
+
+        BAK(BAK_QUEUE
+                , BAK_EXCHANGE
+                , getMeaninglessRoutingKey()
+                , BuiltinExchangeType.FANOUT
+                , Collections.emptyMap()
+                , Collections.emptyMap()
+                , Collections.emptyMap()),
+
+        DEAD(DEAD_QUEUE
+                , DEAD_EXCHANGE
+                , getMeaninglessRoutingKey()
+                , BuiltinExchangeType.FANOUT
+                , Collections.emptyMap()
+                , Collections.emptyMap()
+                , Collections.emptyMap());
 
         /**
          * 队列名
@@ -151,8 +219,16 @@ final class CommonParams {
          */
         private BuiltinExchangeType exchangeType;
         /**
-         * headers，若有的话
+         * 队列参数
          */
-        private Map<String, Object> properties;
+        private Map<String, Object> queueProperties;
+        /**
+         * 交换机参数
+         */
+        private Map<String, Object> exchangeProperties;
+        /**
+         * 绑定参数
+         */
+        private Map<String, Object> bindingProperties;
     }
 }

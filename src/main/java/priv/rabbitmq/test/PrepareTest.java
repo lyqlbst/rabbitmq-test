@@ -39,11 +39,19 @@ public class PrepareTest {
     public void closeChannelAndConnection() throws IOException, TimeoutException {
         System.out.println("\n--------------------------------");
 
-        channel.close();
-        System.out.println("...amqp channel closed success.");
+        if (channel.isOpen()) {
+            channel.close();
+            System.out.println("...amqp channel closed success.");
+        } else {
+            System.out.println("...amqp channel already closed.");
+        }
 
-        connection.close();
-        System.out.println("...amqp connection closed success.");
+        if (connection.isOpen()) {
+            connection.close();
+            System.out.println("...amqp connection closed success.");
+        } else {
+            System.out.println("...amqp connection already closed.");
+        }
     }
 
     /**
@@ -55,13 +63,13 @@ public class PrepareTest {
     public void createRelations() throws IOException {
         for (CommonParams.RelationsEnum relation : CommonParams.RelationsEnum.values()) {
             // 声明队列，测试暂不需要持久化
-            channel.queueDeclare(relation.getQueue(), false, false, false, Collections.emptyMap());
+            channel.queueDeclare(relation.getQueue(), false, false, false, relation.getQueueProperties());
 
             // 声明不同类型的交换器，其他属性忽略
-            channel.exchangeDeclare(relation.getExchange(), relation.getExchangeType());
+            channel.exchangeDeclare(relation.getExchange(), relation.getExchangeType(), false, false, relation.getExchangeProperties());
 
             // 绑定队列或交换器，也可以绑定多个
-            channel.queueBind(relation.getQueue(), relation.getExchange(), relation.getBindingKey(), relation.getProperties());
+            channel.queueBind(relation.getQueue(), relation.getExchange(), relation.getBindingKey(), relation.getBindingProperties());
         }
         System.out.println("queues, exchanges, bindingTypes has been initialed...");
     }
