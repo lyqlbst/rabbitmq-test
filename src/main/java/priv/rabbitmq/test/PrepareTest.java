@@ -19,7 +19,7 @@ import java.util.concurrent.TimeoutException;
  */
 public class PrepareTest {
     private Connection connection;
-    Channel channel;
+    protected Channel channel;
 
     @Before
     public void createConnectionAndChannel() throws IOException, TimeoutException {

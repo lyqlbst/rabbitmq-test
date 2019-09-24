@@ -37,3 +37,7 @@
 + `autoAck`: 若设置为`true`，则会自动确认，而设置为`false`，则需要手动确认
 
 + `basicAck`中的`multiple`: 若设置为`true`，则会自动确认`该channel`的，`已消费过`的，比该`deliveryTag`小的所有消息
+
+**delay.queue：**
+
+**这个包实现了基于 `DLX` + `TTL` 的延迟队列，极简的模拟订单超时自动取消的场景**
