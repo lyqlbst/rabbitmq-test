@@ -21,7 +21,7 @@ final class CommonParams {
 
     // ----------------连接相关----------------
 
-    static final String HOST = "10.19.26.104";
+    static final String HOST = "rabbit-mq.test.com";
     static final Integer PORT = 5672;
     static final String USER = "admin";
     static final String P = "admin";
