@@ -18,7 +18,7 @@ import java.util.concurrent.TimeoutException;
  * @date 2019/9/19 2:37 PM
  */
 public class PrepareTest {
-    private Connection connection;
+    protected Connection connection;
     protected Channel channel;
 
     @Before
